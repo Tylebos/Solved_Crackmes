@@ -24,3 +24,22 @@ Once I gained as much knowledge as I could from the assembly I moved the code in
 ### hash_alg
 hash_alg utilizes the **Fisher-Yates Shuffle** which selects a random index between 0 and the length of the password (See lines 11-18 below) and swaps the value at that index with the value at the end of the string: 
 ![Screenshot of hash_alg in Ghidra](ghidra_hash_alg.png)
+
+### Cracking the Algorithm
+Identifying how the code works was not difficult to do. However, reversing the Fisher-Yates shuffle proved a bit challenging initially. 
+
+**How to 'unshuffle' Fisher-Yates**: To unshuffle Fisher-Yates, I followed the following steps:
+1. Regenerate the same seed used for the original shuffle
+2. Create key-value pairs for the values that were swapped during the original shuffle [swap(len(password)-1, first random index)]
+3. Create a new list of these key-value pairs except this time flip the key-value pair such that (value, key) and then reverse the list
+4. Perform the swap utilizing the new value-key pair created in step 3 on the hashed version of the password. (See exploit.py)
+
+### Impediments
+Although I had researched how to unshuffle the algorithm, I still noticed that I was getting the wrong answer each time. My initial assumption was that I had messed up the unshuffle algorithm or had an off by one error. However, it dawned on me that I may be producing the wrong seed.
+
+My seed construction formula was: `seed += ord(c) * 31` when it actually should have been `seed = ord(c) + seed * 31`. This simple mistake was throwing the entire unshuffle process off! 
+
+# SPOILERS BELOW FOR CRACKME
+
+### Solution
+The final cracked password was **GG_Y0u_ar3_th3_g0at** which when ran through the shuffle creates the hashed algorithm compared to on line 44 of the main function. 
